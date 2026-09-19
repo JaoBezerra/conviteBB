@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Night - Breaking Bad</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        .font-oswald { font-family: 'Oswald', sans-serif; }
+        .font-courier { font-family: 'Courier Prime', monospace; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: #070a07;
+            background-image: 
+                linear-gradient(rgba(7, 10, 7, 0.94), rgba(7, 10, 7, 0.94)),
+                repeating-linear-gradient(45deg, #132415 0, #132415 1px, transparent 0, transparent 40px);
+            background-size: 100% 100%, 40px 40px;
+            color: #d1d5db;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #070a07; }
+        ::-webkit-scrollbar-thumb { background: #1b3820; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2e7d32; }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-2px, -3px) rotate(-1deg); }
+            20% { transform: translate(-4px, 0px) rotate(2deg); }
+            30% { transform: translate(4px, 3px) rotate(0deg); }
+            40% { transform: translate(2px, -2px) rotate(1deg); }
+            50% { transform: translate(-2px, 3px) rotate(-2deg); }
+            60% { transform: translate(-4px, 2px) rotate(0deg); }
+            70% { transform: translate(4px, 2px) rotate(-1deg); }
+            80% { transform: translate(-2px, -2px) rotate(2deg); }
+            90% { transform: translate(2px, 3px) rotate(0deg); }
+            100% { transform: translate(2px, -3px) rotate(-1deg); }
+        }
+        .shake-active {
+            animation: shake 0.25s infinite;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; filter: brightness(1.2); }
+            50% { opacity: 0.6; filter: brightness(0.8); }
+        }
+        .animate-flash {
+            animation: flash 0.15s infinite;
+        }
+    </style>
+</head>
+<!-- overflow-hidden trava o scroll inicial de forma limpa em todos os dispositivos -->
+<body class="font-inter overflow-hidden">
+
+    <!-- Modal Inicial de Propaganda -->
+    <div id="promoModal" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/95 backdrop-blur-sm w-full h-full touch-none">
+        <div id="promoContent" class="relative bg-gradient-to-br from-green-400 via-black to-green-600 p-6 sm:p-10 rounded-3xl border-4 border-green-300 shadow-[0_0_80px_rgba(0,255,0,0.8)] w-[90%] max-w-sm sm:max-w-xl md:max-w-2xl text-center cursor-pointer animate-pulse transition-all transform hover:scale-105 overflow-hidden">
+            <h1 class="text-3xl sm:text-5xl md:text-6xl font-oswald font-black text-white uppercase drop-shadow-[0_5px_5px_rgba(0,0,0,0.9)] mb-4 sm:mb-6 leading-tight">
+                🚨 PARABÉNS! 🚨<br><span class="text-white-200 text-xl sm:text-3xl md:text-4xl">VOCÊ GANHOU UM INGRESSO ESPECIAL!</span>
+            </h1>
+            
+            <p id="promoClickText" class="font-inter font-black text-white text-sm sm:text-xl drop-shadow-md bg-black/60 py-3 px-4 sm:px-6 rounded-xl border border-white/50 inline-block uppercase tracking-widest animate-bounce mt-2 break-words">
+                CLIQUE PARA RESGATAR! 👆
+            </p>
+
+            <!-- Elementos revelados ao clicar -->
+            <img id="promoImg" src="/assets/imagem1.jpg" alt="Ingresso Especial" class="w-full h-72 sm:h-96 md:h-[450px] lg:h-[500px] object-cover rounded-xl border-4 border-white shadow-2xl hidden mx-auto transition-opacity duration-300">
+            
+            <div id="promoProgressContainer" class="w-full bg-black/70 rounded-full h-5 mt-4 sm:mt-6 hidden overflow-hidden border-2 border-white/30 relative">
+                <div id="promoProgressBar" class="bg-gradient-to-r from-green-400 to-emerald-500 h-full rounded-full transition-all duration-75" style="width: 0%"></div>
+                <span class="absolute inset-0 flex items-center justify-center text-[0.65rem] font-bold text-white uppercase tracking-widest z-10 drop-shadow-md">Aguarde o processamento...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conteúdo do Site -->
+    <div id="appWrapper" class="min-h-screen flex flex-col items-center sm:py-8 sm:px-4 w-full">
+        <main class="w-full max-w-[700px] bg-[#0d140e] sm:rounded-xl shadow-[0_0_60px_rgba(46,125,50,0.25)] sm:border border-[#1f4a25] overflow-hidden flex flex-col relative">
+            <header class="pt-14 pb-10 px-6 flex flex-col items-center border-b border-[#1b3d1f] relative bg-gradient-to-b from-[#080d09] via-[#0d170f] to-[#0d140e]">
+                <div class="flex items-center text-4xl sm:text-6xl font-oswald text-white tracking-widest uppercase">
+                    <div class="relative bg-[#1f6b28] border-[3px] border-[#4ade80] w-16 h-16 sm:w-24 sm:h-24 flex items-center justify-center shadow-[0_0_20px_rgba(74,222,128,0.4)] mr-1">
+                        <span class="absolute top-1 left-1 text-[0.5rem] sm:text-xs font-inter font-bold leading-none text-emerald-200">31</span>
+                        <span class="absolute bottom-1 right-1 text-[0.5rem] sm:text-xs font-inter leading-none text-emerald-200">69.723</span>
+                        <span class="font-bold text-white">Ga</span>
+                    </div>
+                    <span class="text-zinc-300 mr-4 sm:mr-6 lowercase text-3xl sm:text-5xl mt-2 sm:mt-4">me</span>
+                    
+                    <div class="relative bg-[#1f6b28] border-[3px] border-[#4ade80] w-16 h-16 sm:w-24 sm:h-24 flex items-center justify-center shadow-[0_0_20px_rgba(74,222,128,0.4)] mr-1">
+                        <span class="absolute top-1 left-1 text-[0.5rem] sm:text-xs font-inter font-bold leading-none text-emerald-200">28</span>
+                        <span class="absolute bottom-1 right-1 text-[0.5rem] sm:text-xs font-inter leading-none text-emerald-200">58.693</span>
+                        <span class="font-bold text-white">Ni</span>
+                    </div>
+                    <span class="text-zinc-300 lowercase text-3xl sm:text-5xl mt-2 sm:mt-4">ght</span>
+                </div>
+                
+                <p class="mt-7 font-courier text-[#4ade80] text-xs sm:text-sm text-center font-bold tracking-widest uppercase px-2">
+                    "I am the one who knocks... and brings the board games!"
+                </p>
+            </header>
+
+            <section class="p-4 sm:p-8">
+                <div class="mb-6 sm:mb-8 border-l-4 border-[#22c55e] pl-4">
+                    <h2 class="font-oswald text-xl sm:text-3xl text-white tracking-wide uppercase">A Fórmula Perfeita → Noite de Jogos!</h2>
+                    <p class="font-courier text-[#4ade80] mt-1 text-xs sm:text-sm">Yeah, Bitch! Games!</p>
+                </div>
+
+                <ul class="space-y-4 text-[#d1d5db]">
+                    <!-- Breaking Bad -->
+                    <li onclick="playGameAudio('/assets/breakingbad.mp3')" class="cursor-pointer bg-[#131f15] rounded-xl p-3 sm:p-4 flex items-center justify-between border border-[#234e28] shadow-md hover:border-[#4ade80] transition-colors gap-3 sm:gap-4">
+                        <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                            <div class="w-2.5 h-2.5 bg-[#22c55e] rotate-45 shadow-[0_0_8px_#22c55e] flex-shrink-0"></div>
+                            <div class="flex flex-col flex-1 min-w-0 pr-2">
+                                <span class="font-oswald text-lg sm:text-2xl text-white tracking-wide uppercase leading-tight break-words">Breaking Bad</span>
+                                <span class="text-xs sm:text-sm font-courier text-[#4ade80] break-words">O Jogo de Tabuleiro</span>
+                                <span class="font-courier text-zinc-300 text-[10px] sm:text-sm italic mt-1 break-words">("I am the danger.")</span>
+                            </div>
+                        </div>
+                        <img src="/assets/download (6).jpg" alt="Breaking Bad" class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border-2 border-[#2e7d32] shadow-md flex-shrink-0">
+                    </li>
+                    
+                    <!-- Quartz -->
+                    <li onclick="playGameAudio('/assets/quartz.mp3')" class="cursor-pointer bg-gradient-to-r from-[#142618] to-[#122115] rounded-xl p-3 sm:p-5 flex items-center justify-between border-2 border-[#34d399]/70 shadow-[0_0_18px_rgba(52,211,153,0.18)] gap-3 sm:gap-4">
+                        <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                            <div class="w-2.5 h-2.5 bg-[#4ade80] rotate-45 shadow-[0_0_10px_#4ade80] flex-shrink-0"></div>
+                            <div class="flex flex-col flex-1 min-w-0 pr-2">
+                                <span class="font-oswald text-xl sm:text-3xl text-[#4ade80] tracking-wide uppercase leading-tight break-words">Quartz</span>
+                                <span class="font-courier text-zinc-300 text-[10px] sm:text-sm italic mt-1 break-words">("They're minerals, Marie!")</span>
+                            </div>
+                        </div>
+                        <img src="/assets/hanky poo.jpg" alt="Hank" class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border-2 border-[#4ade80] shadow-[0_0_14px_rgba(74,222,128,0.35)] flex-shrink-0">
+                    </li>
+
+                    <!-- Poker -->
+                    <li onclick="playGameAudio('/assets/poker.mp3')" class="cursor-pointer bg-[#131f15] rounded-xl p-3 sm:p-4 flex items-center justify-between border border-[#234e28] shadow-md hover:border-[#4ade80] transition-colors gap-3 sm:gap-4">
+                        <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                            <div class="w-2.5 h-2.5 bg-[#22c55e] rotate-45 shadow-[0_0_8px_#22c55e] flex-shrink-0"></div>
+                            <div class="flex flex-col flex-1 min-w-0 pr-2">
+                                <span class="font-oswald text-lg sm:text-2xl text-white tracking-wide uppercase leading-tight break-words">Poker</span>
+                                <span class="font-courier text-zinc-300 text-[10px] sm:text-sm italic mt-1 break-words">("I'm in the empire business.")</span>
+                            </div>
+                        </div>
+                        <img src="/assets/fotoPoker.jpg" alt="Poker" class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border-2 border-[#2e7d32] shadow-md flex-shrink-0">
+                    </li>
+
+                    <!-- RatJack -->
+                    <li onclick="playGameAudio('/assets/ratjack.mp3')" class="cursor-pointer bg-[#131f15] rounded-xl p-3 sm:p-4 flex items-center justify-between border border-[#234e28] shadow-md hover:border-[#4ade80] transition-colors gap-3 sm:gap-4">
+                        <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                            <div class="w-2.5 h-2.5 bg-[#22c55e] rotate-45 shadow-[0_0_8px_#22c55e] flex-shrink-0"></div>
+                            <div class="flex flex-col flex-1 min-w-0 pr-2">
+                                <span class="font-oswald text-lg sm:text-2xl text-white tracking-wide uppercase leading-tight break-words">RatJack</span>
+                                <span class="font-courier text-zinc-300 text-[10px] sm:text-sm italic mt-1 break-words">("No half measures.")</span>
+                            </div>
+                        </div>
+                        <img src="/assets/fotoRatJack.jpg" alt="RatJack" class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border-2 border-[#2e7d32] shadow-md flex-shrink-0">
+                    </li>
+
+                    <!-- Shock -->
+                    <li onclick="playGameAudio('/assets/shock.mp3')" class="cursor-pointer bg-[#131f15] rounded-xl p-3 sm:p-4 flex items-center justify-between border border-[#234e28] shadow-md hover:border-[#4ade80] transition-colors gap-3 sm:gap-4">
+                        <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                            <div class="w-2.5 h-2.5 bg-[#22c55e] rotate-45 shadow-[0_0_8px_#22c55e] flex-shrink-0"></div>
+                            <div class="flex flex-col flex-1 min-w-0 pr-2">
+                                <span class="font-oswald text-lg sm:text-2xl text-white tracking-wide uppercase leading-tight break-words">Shock</span>
+                                <span class="font-courier text-zinc-300 text-[10px] sm:text-sm italic mt-1 break-words">("Yeah, science!")</span>
+                            </div>
+                        </div>
+                        <img src="/assets/fotoShock.jpg" alt="Shock" class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border-2 border-[#2e7d32] shadow-md flex-shrink-0">
+                    </li>
+
+                    <!-- Skull -->
+                    <li onclick="playGameAudio('/assets/skull.mp3')" class="cursor-pointer bg-[#131f15] rounded-xl p-3 sm:p-4 flex items-center justify-between border border-[#234e28] shadow-md hover:border-[#4ade80] transition-colors gap-3 sm:gap-4">
+                        <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                            <div class="w-2.5 h-2.5 bg-[#22c55e] rotate-45 shadow-[0_0_8px_#22c55e] flex-shrink-0"></div>
+                            <div class="flex flex-col flex-1 min-w-0 pr-2">
+                                <span class="font-oswald text-lg sm:text-2xl text-white tracking-wide uppercase leading-tight break-words">Skull</span>
+                                <span class="font-courier text-zinc-300 text-[10px] sm:text-sm italic mt-1 break-words">("I won.")</span>
+                            </div>
+                        </div>
+                        <img src="/assets/fotoSkull.jpg" alt="Skull" class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border-2 border-[#2e7d32] shadow-md flex-shrink-0">
+                    </li>
+
+                    <!-- Munchkin Dungeons -->
+                    <li onclick="playGameAudio('/assets/munchikin.mp3')" class="cursor-pointer bg-[#131f15] rounded-xl p-3 sm:p-4 flex items-center justify-between border border-[#234e28] shadow-md hover:border-[#4ade80] transition-colors gap-3 sm:gap-4">
+                        <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                            <div class="w-2.5 h-2.5 bg-[#22c55e] rotate-45 shadow-[0_0_8px_#22c55e] flex-shrink-0"></div>
+                            <div class="flex flex-col flex-1 min-w-0 pr-2">
+                                <span class="font-oswald text-lg sm:text-2xl text-white tracking-wide uppercase leading-tight break-words">Munchkin Dungeons</span>
+                                <span class="font-courier text-zinc-300 text-[10px] sm:text-sm italic mt-1 break-words">("We're done when I say we're done.")</span>
+                            </div>
+                        </div>
+                        <img src="assets/fotoMunchikin.jpg" alt="Munchkin Dungeons" class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border-2 border-[#2e7d32] shadow-md flex-shrink-0">
+                    </li>
+                </ul>
+            </section>
+
+            <section class="bg-[#f7ca18] px-4 sm:px-6 py-10 sm:p-12 relative border-y-[6px] border-[#d32f2f]">
+                
+                <div class="absolute -top-7 right-3 sm:right-10 bg-[#d32f2f] text-white w-20 h-20 sm:w-28 sm:h-28 rounded-full flex flex-col justify-center items-center shadow-[0_6px_18px_rgba(211,47,47,0.6)] transform rotate-12 border-4 border-[#f7ca18] z-10">
+                    <span class="text-[0.55rem] sm:text-xs uppercase tracking-widest font-bold">Apenas</span>
+                    <span class="font-oswald text-lg sm:text-2xl font-bold leading-none mt-1">R$ 35,00!</span>
+                </div>
+
+                <div class="flex flex-col items-center mb-7 relative z-0 mt-4 sm:mt-0">
+                    <img src="/assets/Los Pollos Hemranos.png" alt="Los Pollos Hermanos Logo" class="h-20 sm:h-32 drop-shadow-xl mb-3 object-contain">
+                    <h2 class="font-oswald text-xl sm:text-3xl uppercase tracking-wider text-[#d32f2f] border-b-2 border-[#d32f2f] pb-1 text-center">O Laboratório Culinário</h2>
+                </div>
+
+                <div class="max-w-md mx-auto text-[#b71c1c] font-inter font-bold text-sm sm:text-base text-center">
+                    <ul class="flex flex-col space-y-2.5">
+                        <li class="pb-2 border-b border-[#d32f2f]/25 uppercase">Frango Frito Icônico</li>
+                        <li class="pb-2 border-b border-[#d32f2f]/25 uppercase">Batata Frita</li>
+                        <li class="pb-2 border-b border-[#d32f2f]/25 uppercase">Polenta Frita</li>
+                        <li class="pb-2 border-b border-[#d32f2f]/25 uppercase">Cachorro Quente</li>
+                        <li class="pb-2 border-b border-[#d32f2f]/25 uppercase">Bolo</li>
+                        <li class="pb-2 border-b border-[#d32f2f]/25 uppercase">Pipoca</li>
+                    </ul>
+                    <div class="mt-6 bg-[#d32f2f] text-[#f7ca18] py-3 px-3 sm:px-4 rounded-lg shadow-md flex items-center justify-between gap-2 sm:gap-3">
+                        <span class="font-bold uppercase tracking-wide text-left text-xs sm:text-base break-words flex-1">Refrigerantes e Bebidas Alcoólicas <br class="sm:hidden"> (À Vontade)</span>
+                        <img src="/assets/hankbeer.jpg" alt="Hank Beer" class="w-16 sm:w-20 h-auto object-contain drop-shadow-lg flex-shrink-0">
+                    </div>
+                </div>
+            </section>
+
+            <section class="p-5 sm:p-9 flex flex-col items-center text-center bg-[#090f0a]">
+                <h3 class="font-oswald text-[#4ade80] text-lg sm:text-xl uppercase tracking-widest mb-3">Ponto de Encontro</h3>
+                
+                <div class="w-full bg-gradient-to-r from-[#0d140e] via-[#142316] to-[#0d140e] py-5 px-4 rounded-lg border border-[#22c55e]/40 shadow-inner">
+                    <p class="font-inter font-bold text-white text-base sm:text-xl tracking-wide uppercase">Rua Rio Trombetas, 165</p>
+                    <p class="text-[#4ade80] mt-2 font-courier text-xs sm:text-sm break-words">Hoje à noite. Don't be late. Say my name.</p>
+                </div>
+
+                <p class="mt-8 mb-2 text-[0.65rem] sm:text-xs text-zinc-500 tracking-widest font-courier uppercase w-full">
+                    99.1% de Pureza Garantida na Diversão
+                </p>
+            </section>
+
+            <div class="p-6 sm:p-8 bg-[#0d140e] flex justify-center border-t border-[#1b3d1f]">
+                <button id="btnEuVou" class="bg-[#4ade80] hover:bg-[#22c55e] text-[#070a07] font-oswald text-2xl sm:text-4xl px-8 sm:px-12 py-4 sm:py-5 rounded-xl shadow-[0_0_25px_rgba(74,222,128,0.5)] hover:shadow-[0_0_40px_rgba(74,222,128,0.8)] transition-all transform hover:scale-110 uppercase tracking-widest font-bold z-10 cursor-pointer w-full sm:w-auto">
+                    Eu Vou!
+                </button>
+            </div>
+
+            <div class="w-full mt-auto block leading-none">
+                <div class="bg-[#f7ca18] border-t-[6px] border-[#d32f2f] p-3 text-center">
+                    <p class="font-oswald text-base sm:text-xl text-[#d32f2f] uppercase tracking-wide font-bold break-words">
+                        Em casos de conflitos com a leitura do manual:<br class="sm:hidden"> Better Call Saul!
+                    </p>
+                    <img src="/assets/bettercalsaul.jpg" alt="Better Call Saul" class="w-full h-auto object-cover block m-0 p-0 mt-3">
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal fixado do Hector -->
+    <div id="dingModal" class="fixed inset-0 z-[999] hidden items-center justify-center bg-black transition-opacity duration-300 w-full h-full touch-none">
+        <div class="relative max-w-sm sm:max-w-md w-full flex flex-col items-center px-4">
+            <img src="/assets/ding.jpg" alt="Ding Ding Ding" class="w-full h-auto rounded-2xl shadow-[0_0_100px_rgba(220,38,38,1)] ring-8 ring-red-500 animate-flash">
+            <h2 class="font-oswald text-7xl sm:text-9xl text-white uppercase tracking-widest mt-6 font-bold drop-shadow-[0_8px_8px_rgba(0,0,0,1)]">Ding!</h2>
+        </div>
+    </div>
+
+    <script>
+        // LÓGICA DA PROPAGANDA (Modal Inicial)
+        const promoModal = document.getElementById('promoModal');
+        const promoContent = document.getElementById('promoContent');
+        const promoClickText = document.getElementById('promoClickText');
+        const promoImg = document.getElementById('promoImg');
+        const promoProgressContainer = document.getElementById('promoProgressContainer');
+        const promoProgressBar = document.getElementById('promoProgressBar');
+        
+        const promoAudio = new Audio('/assets/site.mp3');
+        let isPromoStarted = false;
+        
+        let carouselInterval;
+        let currentImageIndex = 1;
+
+        promoContent.addEventListener('click', () => {
+            if (!isPromoStarted) {
+                isPromoStarted = true;
+                
+                promoContent.classList.remove('animate-pulse', 'cursor-pointer', 'hover:scale-105');
+                promoClickText.classList.add('hidden');
+                
+                promoImg.classList.remove('hidden');
+                promoProgressContainer.classList.remove('hidden');
+                
+                // Inicia o carrossel de imagens a cada 3 segundos
+                carouselInterval = setInterval(() => {
+                    currentImageIndex++;
+                    // Para na imagem 6 e limpa o intervalo para ela ficar fixa até o fim da música
+                    if (currentImageIndex >= 6) {
+                        currentImageIndex = 6;
+                        clearInterval(carouselInterval);
+                    }
+                    promoImg.src = `/assets/imagem${currentImageIndex}.jpg`;
+                }, 3000);
+                
+                promoAudio.play().catch(e => console.log('Erro ao tocar propaganda:', e));
+                
+                promoAudio.addEventListener('timeupdate', () => {
+                    const progress = (promoAudio.currentTime / promoAudio.duration) * 100;
+                    promoProgressBar.style.width = progress + '%';
+                });
+
+                // Finaliza
+                promoAudio.addEventListener('ended', () => {
+                    promoModal.classList.add('hidden');
+                    promoModal.style.display = 'none'; 
+                    clearInterval(carouselInterval); // Garantia de parada
+                    
+                    // Libera a rolagem do site retirando a classe de travamento limpo
+                    document.body.classList.remove('overflow-hidden');
+                });
+            }
+        });
+
+        // LÓGICA DOS JOGOS
+        let currentGameSound = null;
+        window.playGameAudio = function(audioPath) {
+            if (currentGameSound) {
+                currentGameSound.pause();
+                currentGameSound.currentTime = 0;
+            }
+            currentGameSound = new Audio(audioPath);
+            currentGameSound.play().catch(e => console.log('Erro ao tocar som do jogo:', e));
+        };
+
+        // LÓGICA DO BOTÃO HECTOR SALAMANCA ("EU VOU!")
+        const btnEuVou = document.getElementById('btnEuVou');
+        const dingModal = document.getElementById('dingModal');
+        const appWrapper = document.getElementById('appWrapper');
+        
+        const bellAudio = new Audio('/assets/bell.mp3');
+        
+        let shakeTimeout;
+        let bellInterval;
+
+        function playBell() {
+            const clone = bellAudio.cloneNode();
+            clone.play().catch(e => console.log('Erro ao tocar áudio:', e));
+        }
+
+        btnEuVou.addEventListener('click', () => {
+            if (currentGameSound) currentGameSound.pause();
+
+            dingModal.classList.remove('hidden');
+            dingModal.classList.add('flex');
+            appWrapper.classList.add('shake-active');
+            
+            // Trava o fundo novamente enquanto o Ding aparece usando a classe correta
+            document.body.classList.add('overflow-hidden');
+            
+            clearTimeout(shakeTimeout);
+            clearInterval(bellInterval);
+            
+            playBell();
+            bellInterval = setInterval(playBell, 250);
+            
+            shakeTimeout = setTimeout(() => {
+                dingModal.classList.add('hidden');
+                dingModal.classList.remove('flex');
+                appWrapper.classList.remove('shake-active');
+                clearInterval(bellInterval);
+                document.body.classList.remove('overflow-hidden');
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
